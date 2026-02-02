@@ -270,7 +270,7 @@
                 실시간 시장 현황 (Yahoo Finance)
             </h2>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px;">
                 <!-- KOSPI Live -->
                 <div id="kospi-live" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
                     <div style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 5px;">KOSPI (^KS11)</div>
@@ -282,6 +282,40 @@
                 <!-- KOSDAQ Live -->
                 <div id="kosdaq-live" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
                     <div style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 5px;">KOSDAQ (^KQ11)</div>
+                    <div style="font-size: 32px; font-weight: bold; color: white; margin-bottom: 10px;">로딩 중...</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.8);">변동률: -</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px;">거래량: -</div>
+                </div>
+
+                <!-- S&P 500 Live -->
+                <div id="sp500-live" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                    <div style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 5px;">S&P 500 (^GSPC)
+                    </div>
+                    <div style="font-size: 32px; font-weight: bold; color: white; margin-bottom: 10px;">로딩 중...</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.8);">변동률: -</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px;">거래량: -</div>
+                </div>
+
+                <!-- Nasdaq Composite Live -->
+                <div id="nasdaq-live" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                    <div style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 5px;">Nasdaq (^IXIC)</div>
+                    <div style="font-size: 32px; font-weight: bold; color: white; margin-bottom: 10px;">로딩 중...</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.8);">변동률: -</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px;">거래량: -</div>
+                </div>
+
+                <!-- Dow Jones Live -->
+                <div id="dowjones-live" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                    <div style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 5px;">Dow Jones (^DJI)
+                    </div>
+                    <div style="font-size: 32px; font-weight: bold; color: white; margin-bottom: 10px;">로딩 중...</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.8);">변동률: -</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px;">거래량: -</div>
+                </div>
+
+                <!-- Apple Live -->
+                <div id="apple-live" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                    <div style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 5px;">Apple (AAPL)</div>
                     <div style="font-size: 32px; font-weight: bold; color: white; margin-bottom: 10px;">로딩 중...</div>
                     <div style="font-size: 14px; color: rgba(255,255,255,0.8);">변동률: -</div>
                     <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px;">거래량: -</div>
@@ -895,7 +929,11 @@
         async function updateAllPrices() {
             await Promise.all([
                 updateStockPrice('^KS11', 'kospi-live', 'KOSPI'),
-                updateStockPrice('^KQ11', 'kosdaq-live', 'KOSDAQ')
+                updateStockPrice('^KQ11', 'kosdaq-live', 'KOSDAQ'),
+                updateStockPrice('122630.KS', 'kodex200-live', 'KODEX 200 레버리지'),
+                updateStockPrice('233740.KS', 'kodex150-live', 'KODEX KOSDAQ150 레버리지'),
+                updateStockPrice('ES=F', 'sp500-live', 'S&P 500 선물'),
+                updateStockPrice('NQ=F', 'nasdaq-live', 'Nasdaq 선물')
             ]);
         }
 
