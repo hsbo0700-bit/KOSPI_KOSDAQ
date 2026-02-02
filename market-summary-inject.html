@@ -1,0 +1,175 @@
+<!-- 실시간 시황 요약 섹션 추가 스크립트 -->
+<script>
+    // 실시간 시황 요약 생성 및 삽입
+    function initMarketSummary() {
+        // 종합 결론 섹션 찾기
+        const sections = document.querySelectorAll('section');
+        let targetSection = null;
+
+        sections.forEach(section => {
+            const h3 = section.querySelector('h3');
+            if (h3 && h3.textContent.includes('종합 결론')) {
+                targetSection = section;
+            }
+        });
+
+        if (!targetSection) {
+            console.error('❌ 종합 결론 섹션을 찾을 수 없습니다.');
+            return;
+        }
+
+        // 시황 요약 HTML 생성
+        const summaryHTML = `
+        <div id="market-summary-live" style="
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(30, 60, 114, 0.3);
+            font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
+                <h3 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.5px;">
+                    📊 실시간 종합 시황
+                </h3>
+                <div id="update-time" style="
+                    font-size: 13px;
+                    background: rgba(255,255,255,0.2);
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-weight: 500;
+                "></div>
+            </div>
+            <div id="market-summary-content" style="
+                background: rgba(255,255,255,0.1);
+                padding: 20px;
+                border-radius: 12px;
+                line-height: 1.9;
+                font-size: 16px;
+                backdrop-filter: blur(10px);
+            ">
+                <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">
+                    시장 데이터 로딩 중...
+                </div>
+            </div>
+        </div>
+    `;
+
+        // 종합 결론 h3 태그 바로 뒤에 삽입
+        const h3 = targetSection.querySelector('h3');
+        if (h3) {
+            h3.insertAdjacentHTML('afterend', summaryHTML);
+            console.log('✅ 시황 요약 섹션 삽입 완료');
+        }
+    }
+
+    // 시황 요약 업데이트 함수
+    function updateMarketSummary() {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
+        });
+        const timeStr = now.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        // 업데이트 시간 표시
+        const updateTimeEl = document.getElementById('update-time');
+        if (updateTimeEl) {
+            updateTimeEl.textContent = `${dateStr} ${timeStr}`;
+        }
+
+        // 시장 데이터 수집
+        const getPrice = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const text = el.textContent;
+            const match = text.match(/[\d,]+\.[\d]+/);
+            return match ? parseFloat(match[0].replace(/,/g, '')) : null;
+        };
+
+        const getChange = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const text = el.textContent;
+            const match = text.match(/([+-]?[\d.]+)%/);
+            return match ? parseFloat(match[1]) : null;
+        };
+
+        const kospiChange = getChange('kospi-live');
+        const kosdaqChange = getChange('kosdaq-live');
+        const kospiPrice = getPrice('kospi-live');
+        const kosdaqPrice = getPrice('kosdaq-live');
+
+        // 시황 분석 생성
+        let summary = '';
+
+        if (kospiChange === null || kosdaqChange === null) {
+            summary = `<strong>현재 시점:</strong> ${dateStr} ${timeStr}<br><br>⏰ 시장이 휴장 중이거나 데이터를 불러오는 중입니다. 거래 시간(09:00-15:30)에 다시 확인해주세요.`;
+        } else {
+            const avgChange = (kospiChange + kosdaqChange) / 2;
+            let marketTrend = '';
+            let trendEmoji = '';
+            let analysis = '';
+
+            if (avgChange > 1) {
+                marketTrend = '강세';
+                trendEmoji = '📈🔥';
+                analysis = `KOSPI ${kospiChange > 0 ? '+' : ''}${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange > 0 ? '+' : ''}${kosdaqChange.toFixed(2)}%로 투자 심리가 개선되고 있습니다. 레버리지 ETF를 활용한 공격적 포지션 구축 타이밍이며, 목표가 도달 시 부분 익절을 권장합니다.`;
+            } else if (avgChange > 0.3) {
+                marketTrend = '상승';
+                trendEmoji = '📈';
+                analysis = `KOSPI ${kospiChange > 0 ? '+' : ''}${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange > 0 ? '+' : ''}${kosdaqChange.toFixed(2)}%로 완만한 상승 흐름입니다. 레버리지 50% 내외로 안정적 진입을 추천하며, 급등 시 일부 차익 실현을 고려하세요.`;
+            } else if (avgChange > -0.3) {
+                marketTrend = '혼조';
+                trendEmoji = '📊';
+                analysis = `KOSPI ${kospiChange > 0 ? '+' : ''}${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange > 0 ? '+' : ''}${kosdaqChange.toFixed(2)}%로 방향성이 불분명합니다. 현금 비중을 높게 유지하며 추세 확인 후 진입하고, 단기 변동성에 주의가 필요합니다.`;
+            } else if (avgChange > -1) {
+                marketTrend = '약세';
+                trendEmoji = '📉';
+                analysis = `KOSPI ${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange.toFixed(2)}%로 조정 국면입니다. 레버리지 비중을 30% 이하로 축소하고, 손절 기준을 엄격히 준수하며 방어적 포지션을 유지하세요.`;
+            } else {
+                marketTrend = '급락';
+                trendEmoji = '⚠️📉';
+                analysis = `KOSPI ${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange.toFixed(2)}%로 급격한 하락세입니다. 레버리지 포지션 즉시 청산을 고려하고, 현금 비중 80% 이상 확보하며 반등 시점까지 관망을 권장합니다.`;
+            }
+
+            summary = `
+            <div style="margin-bottom: 16px;">
+                <strong style="font-size: 18px;">${trendEmoji} 현재 시장: ${marketTrend}</strong>
+                <div style="margin-top: 8px; font-size: 14px; color: rgba(255,255,255,0.8);">
+                    ${dateStr} ${timeStr} 기준
+                </div>
+            </div>
+            <div style="line-height: 1.9;">
+                ${analysis}
+            </div>
+        `;
+        }
+
+        const summaryEl = document.getElementById('market-summary-content');
+        if (summaryEl) {
+            summaryEl.innerHTML = summary;
+        }
+    }
+
+    // 페이지 로드 시 실행
+    window.addEventListener('DOMContentLoaded', () => {
+        // 시황 섹션 생성
+        initMarketSummary();
+
+        // 초기 업데이트 (2초 후)
+        setTimeout(updateMarketSummary, 2000);
+
+        // 30초마다 자동 업데이트
+        setInterval(updateMarketSummary, 30000);
+
+        console.log('✅ 실시간 시황 요약 시스템 활성화');
+    });
+</script>

@@ -1,0 +1,282 @@
+<!-- Enhanced Gemini API Integration Script -->
+<script>
+    // ========================================
+    // Template AI Integration via Cloudflare Workers
+    // ========================================
+
+    const GEMINI_WORKER_URL = 'https://gemini-report-analyzer.ykkim-182.workers.dev';
+
+    // Collect current market data from the page
+    function collectMarketData() {
+        const getPrice = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return 'N/A';
+            const text = el.textContent;
+            return text.match(/[\d,]+\.[\d]+/)?.[0] || 'N/A';
+        };
+
+        const getChange = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return 'N/A';
+            const text = el.textContent;
+            return text.match(/[+-]?[\d.]+%/)?.[0] || 'N/A';
+        };
+
+        return {
+            kospi: { price: getPrice('kospi-live'), change: getChange('kospi-live') },
+            kosdaq: { price: getPrice('kosdaq-live'), change: getChange('kosdaq-live') },
+            kodex200: { price: getPrice('kodex200-live') },
+            kodex150: { price: getPrice('kodex150-live') },
+            sp500: { price: getPrice('sp500-live') },
+            nasdaq: { price: getPrice('nasdaq-live') }
+        };
+    }
+
+    // Call Template AI via Cloudflare Workers
+    async function callGeminiAPI(userInput, marketData) {
+        console.log('🤖 Calling Template AI...', { userInput, marketData });
+
+        const response = await fetch(GEMINI_WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userInput, marketData })
+        });
+
+        console.log('📡 Response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ API Error:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ API Response:', data);
+
+        if (!data.success) {
+            throw new Error(data.error || '알 수 없는 오류');
+        }
+
+        return data.report;
+    }
+
+    // Update HTML with AI-generated report
+    function updateReportWithAI(aiReport) {
+        console.log('📝 Updating report with AI analysis...');
+
+        // Simple markdown to HTML conversion
+        const parseMarkdown = (text) => {
+            return text
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        };
+
+        // 0. Add User Request Summary (Enhanced!)
+        const execSummary = document.querySelector('.exec-summary');
+        if (execSummary) {
+            const userRequestMatch = aiReport.match(/USER_REQUEST([\s\S]*?)(?=EXECUTIVE_SUMMARY|$)/);
+            const summaryMatch = aiReport.match(/EXECUTIVE_SUMMARY([\s\S]*?)(?=PORTFOLIO_STRATEGY|$)/);
+
+            let content = '';
+
+            // Add User Request Summary if exists
+            if (userRequestMatch) {
+                content += `
+                    <div style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        color: white; 
+                        padding: 24px; 
+                        border-radius: 16px; 
+                        margin-bottom: 24px; 
+                        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+                        font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif;
+                        line-height: 1.8;
+                        font-size: 16px;
+                        -webkit-font-smoothing: antialiased;
+                        -moz-osx-font-smoothing: grayscale;
+                    ">
+                        <div style="
+                            font-size: 22px; 
+                            font-weight: 600; 
+                            margin-bottom: 18px; 
+                            letter-spacing: -0.5px;
+                            font-family: inherit;
+                        ">
+                            📊 요청사항 분석
+                        </div>
+                        <div style="
+                            background: rgba(255,255,255,0.15); 
+                            padding: 20px; 
+                            border-radius: 12px;
+                            backdrop-filter: blur(10px);
+                            font-size: 16px;
+                            line-height: 1.9;
+                            font-family: inherit;
+                        ">
+                            ${parseMarkdown(userRequestMatch[1].trim())}
+                        </div>
+                    </div>`;
+            }
+
+            // Add AI Executive Summary
+            if (summaryMatch) {
+                content += `
+                    <div style="
+                        text-align: left; 
+                        position: relative;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif;
+                        line-height: 1.8;
+                        font-size: 16px;
+                        -webkit-font-smoothing: antialiased;
+                        -moz-osx-font-smoothing: grayscale;
+                    ">
+                        <div style="
+                            position: absolute; 
+                            top: 10px; 
+                            right: 10px; 
+                            background: #27ae60; 
+                            color: white; 
+                            padding: 8px 14px; 
+                            border-radius: 8px; 
+                            font-size: 13px; 
+                            font-weight: 600; 
+                            z-index: 10;
+                            box-shadow: 0 3px 10px rgba(39, 174, 96, 0.25);
+                            letter-spacing: -0.3px;
+                        ">
+                            🤖 AI 분석
+                        </div>
+                        ${parseMarkdown(summaryMatch[1].trim())}
+                    </div>`;
+            }
+
+            if (content) {
+                execSummary.innerHTML = content;
+                execSummary.style.backgroundColor = '#e8f5e9';
+                setTimeout(() => { execSummary.style.backgroundColor = ''; }, 2000);
+                console.log('✅ Executive summary updated with enhanced styling');
+            }
+        }
+
+        // 2. Add Portfolio Strategy Section
+        const portfolioMatch = aiReport.match(/PORTFOLIO_STRATEGY([\s\S]*?)(?=ACTION_PLAN|$)/);
+        if (portfolioMatch) {
+            // Remove existing AI section if any
+            const existingAI = document.querySelector('.ai-portfolio-section');
+            if (existingAI) existingAI.remove();
+
+            const aiSection = document.createElement('div');
+            aiSection.className = 'ai-portfolio-section';
+            aiSection.style.cssText = 'background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800; box-shadow: 0 4px 6px rgba(0,0,0,0.1);font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; line-height: 1.8;';
+            aiSection.innerHTML = `
+                <strong style="color: #e65100; font-size: 18px;">🤖 AI 맞춤형 포트폴리오 전략</strong>
+                <div style="margin-top: 10px; line-height: 1.8; font-size: 15px;">
+                    ${parseMarkdown(portfolioMatch[1].trim())}
+                </div>
+            `;
+
+            const portfolioHeading = Array.from(document.querySelectorAll('h3')).find(
+                h3 => h3.textContent.includes('포트폴리오')
+            );
+            if (portfolioHeading) {
+                portfolioHeading.parentElement.insertBefore(aiSection, portfolioHeading.nextSibling);
+                console.log('✅ Portfolio section added');
+            }
+        }
+
+        // 3. Add Action Plan Section
+        const actionMatch = aiReport.match(/ACTION_PLAN([\s\S]*)/);
+        if (actionMatch) {
+            // Remove existing AI section if any
+            const existingAI = document.querySelector('.ai-action-section');
+            if (existingAI) existingAI.remove();
+
+            const aiSection = document.createElement('div');
+            aiSection.className = 'ai-action-section';
+            aiSection.style.cssText = 'background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; box-shadow: 0 4px 6px rgba(0,0,0,0.1);font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; line-height: 1.8;';
+            aiSection.innerHTML = `
+                <strong style="color: #1976d2; font-size: 18px;">🤖 AI 시나리오 분석</strong>
+                <div style="margin-top: 10px; line-height: 1.8; font-size: 15px;">
+                    ${parseMarkdown(actionMatch[1].trim())}
+                </div>
+            `;
+
+            const scenarioHeading = Array.from(document.querySelectorAll('h3')).find(
+                h3 => h3.textContent.includes('시나리오')
+            );
+            if (scenarioHeading) {
+                scenarioHeading.parentElement.insertBefore(aiSection, scenarioHeading.nextSibling);
+                console.log('✅ Action plan section added');
+            }
+        }
+
+        console.log('🎉 Report update complete!');
+    }
+
+    // Initialize AI integration on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        const addBtn = document.getElementById('add-note-btn');
+        const noteInput = document.getElementById('note-input');
+
+        if (!addBtn || !noteInput) {
+            console.error('❌ Required elements not found');
+            return;
+        }
+
+        // Remove existing event listeners by cloning the button
+        const newAddBtn = addBtn.cloneNode(true);
+        addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+
+        // Add new AI-powered event listener
+        newAddBtn.addEventListener('click', async () => {
+            const text = noteInput.value.trim();
+            if (!text) {
+                alert("분석 내용을 먼저 입력해주세요.");
+                return;
+            }
+
+            // Loading state
+            newAddBtn.disabled = true;
+            const originalHTML = newAddBtn.innerHTML;
+            newAddBtn.innerHTML = '🔄 AI 분석 중...<br><span style="font-size: 12px;">1-2초 소요</span>';
+            newAddBtn.style.opacity = '0.6';
+
+            try {
+                // Collect market data
+                const marketData = collectMarketData();
+                console.log('📊 Market data collected:', marketData);
+
+                // Call Template AI
+                const aiReport = await callGeminiAPI(text, marketData);
+                console.log('📄 AI Report received, length:', aiReport.length);
+
+                // Update report with AI analysis
+                updateReportWithAI(aiReport);
+
+                // Save to localStorage
+                const now = new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const notes = JSON.parse(localStorage.getItem('vip_investor_notes') || '[]');
+                notes.push({ text: text, time: now, aiReport: aiReport });
+                localStorage.setItem('vip_investor_notes', JSON.stringify(notes));
+
+                noteInput.value = '';
+
+                // Success message
+                alert("✅ AI 분석 완료!\n\n보고서가 귀하의 요청에 맞춰 재작성되었습니다.\n\n추가된 섹션:\n• 📊 요청사항 분석 (보라색 박스)\n• 🤖 AI 분석 배지\n• 🤖 AI 맞춤형 포트폴리오 전략\n• 🤖 AI 시나리오 분석\n\n페이지를 스크롤하여 확인하세요!");
+
+            } catch (error) {
+                console.error('❌ AI Error:', error);
+                alert(`❌ AI 분석 중 오류가 발생했습니다.\n\n오류: ${error.message}\n\n• F12를 눌러 Console 확인\n• Cloudflare Workers 설정 확인`);
+            } finally {
+                // Restore button
+                newAddBtn.disabled = false;
+                newAddBtn.innerHTML = originalHTML;
+                newAddBtn.style.opacity = '1';
+            }
+        });
+
+        console.log('✅ Template AI integration loaded successfully!');
+        console.log('📡 Worker URL:', GEMINI_WORKER_URL);
+    });
+</script>

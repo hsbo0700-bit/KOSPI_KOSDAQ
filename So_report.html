@@ -714,6 +714,134 @@
             }
 
             // Comprehensive Report Rewrite based on Input
+            // Gemini API Integration via Cloudflare Workers
+            const WORKER_URL = 'https://gemini-report-analyzer.ykkim-182.workers.dev';
+
+            // Collect current market data
+            function collectMarketData() {
+                const getPrice = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return 'N/A';
+                    const text = el.textContent;
+                    return text.match(/[\d,]+\.[\d]+/)?.[0] || 'N/A';
+                };
+
+                const getChange = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return 'N/A';
+                    const text = el.textContent;
+                    return text.match(/[+-]?[\d.]+%/)?.[0] || 'N/A';
+                };
+
+                return {
+                    kospi: { price: getPrice('kospi-live'), change: getChange('kospi-live') },
+                    kosdaq: { price: getPrice('kosdaq-live'), change: getChange('kosdaq-live') },
+                    kodex200: { price: getPrice('kodex200-live') },
+                    kodex150: { price: getPrice('kodex150-live') },
+                    sp500: { price: getPrice('sp500-live') },
+                    nasdaq: { price: getPrice('nasdaq-live') }
+                };
+            }
+
+            // Call Gemini API via Cloudflare Workers
+            async function callGeminiAPI(userInput, marketData) {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userInput, marketData })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || '알 수 없는 오류');
+                }
+
+                return data.report;
+            }
+
+            // Parse Gemini response and update HTML
+            function updateReportWithAI(aiReport) {
+                // Simple markdown to HTML conversion
+                const parseMarkdown = (text) => {
+                    return text
+                        .replace(/\n/g, '<br>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+                };
+
+                // Update Executive Summary
+                const execSummary = document.querySelector('.exec-summary');
+                if (execSummary) {
+                    const summaryMatch = aiReport.match(/EXECUTIVE_SUMMARY([\s\S]*?)(?=PORTFOLIO_STRATEGY|$)/);
+                    if (summaryMatch) {
+                        execSummary.innerHTML = `
+                        <div style="text-align: left; position: relative;">
+                            <div style="position: absolute; top: 10px; right: 10px; background: #27ae60; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                                🤖 AI 분석
+                            </div>
+                            ${parseMarkdown(summaryMatch[1].trim())}
+                        </div>
+                    `;
+                        execSummary.style.backgroundColor = '#e8f5e9';
+                        setTimeout(() => { execSummary.style.backgroundColor = ''; }, 2000);
+                    }
+                }
+
+                // Add Portfolio Strategy as a new section
+                const portfolioMatch = aiReport.match(/PORTFOLIO_STRATEGY([\s\S]*?)(?=ACTION_PLAN|$)/);
+                if (portfolioMatch) {
+                    const existingAI = document.querySelector('.ai-portfolio-section');
+                    if (existingAI) existingAI.remove();
+
+                    const aiSection = document.createElement('div');
+                    aiSection.className = 'ai-portfolio-section';
+                    aiSection.style.cssText = 'background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;';
+                    aiSection.innerHTML = `
+                    <strong style="color: #e65100; font-size: 18px;">🤖 AI 맞춤형 포트폴리오 전략</strong>
+                    <div style="margin-top: 10px;">
+                        ${parseMarkdown(portfolioMatch[1].trim())}
+                    </div>
+                `;
+
+                    const portfolioHeading = Array.from(document.querySelectorAll('h3')).find(
+                        h3 => h3.textContent.includes('포트폴리오')
+                    );
+                    if (portfolioHeading) {
+                        portfolioHeading.parentElement.insertBefore(aiSection, portfolioHeading.nextSibling);
+                    }
+                }
+
+                // Add Action Plan
+                const actionMatch = aiReport.match(/ACTION_PLAN([\s\S]*)/);
+                if (actionMatch) {
+                    const existingAI = document.querySelector('.ai-action-section');
+                    if (existingAI) existingAI.remove();
+
+                    const aiSection = document.createElement('div');
+                    aiSection.className = 'ai-action-section';
+                    aiSection.style.cssText = 'background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3;';
+                    aiSection.innerHTML = `
+                    <strong style="color: #1976d2; font-size: 18px;">🤖 AI 시나리오 분석</strong>
+                    <div style="margin-top: 10px;">
+                        ${parseMarkdown(actionMatch[1].trim())}
+                    </div>
+                `;
+
+                    const scenarioHeading = Array.from(document.querySelectorAll('h3')).find(
+                        h3 => h3.textContent.includes('시나리오')
+                    );
+                    if (scenarioHeading) {
+                        scenarioHeading.parentElement.insertBefore(aiSection, scenarioHeading.nextSibling);
+                    }
+                }
+            }
+
+            // Original simple sentiment analysis (fallback)
             function updateReportView(text) {
                 const lowerText = text.toLowerCase();
                 let sentiment = "neutral";
@@ -1031,6 +1159,397 @@
                     updateAllPrices();
                     updateInterval = setInterval(updateAllPrices, 10000);
                 }
+            });
+        </script>
+
+        <!-- Gemini API Integration Script -->
+        <script>
+            // ========================================
+            // Gemini API Integration via Cloudflare Workers
+            // ========================================
+
+            const GEMINI_WORKER_URL = 'https://gemini-report-analyzer.ykkim-182.workers.dev';
+
+            // Collect current market data from the page
+            function collectMarketData() {
+                const getPrice = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return 'N/A';
+                    const text = el.textContent;
+                    return text.match(/[\d,]+\.[\d]+/)?.[0] || 'N/A';
+                };
+
+                const getChange = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return 'N/A';
+                    const text = el.textContent;
+                    return text.match(/[+-]?[\d.]+%/)?.[0] || 'N/A';
+                };
+
+                return {
+                    kospi: { price: getPrice('kospi-live'), change: getChange('kospi-live') },
+                    kosdaq: { price: getPrice('kosdaq-live'), change: getChange('kosdaq-live') },
+                    kodex200: { price: getPrice('kodex200-live') },
+                    kodex150: { price: getPrice('kodex150-live') },
+                    sp500: { price: getPrice('sp500-live') },
+                    nasdaq: { price: getPrice('nasdaq-live') }
+                };
+            }
+
+            // Call Gemini API via Cloudflare Workers
+            async function callGeminiAPI(userInput, marketData) {
+                console.log('🤖 Calling Gemini API...', { userInput, marketData });
+
+                const response = await fetch(GEMINI_WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userInput, marketData })
+                });
+
+                console.log('📡 Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('✅ API Response:', data);
+
+                if (!data.success) {
+                    throw new Error(data.error || '알 수 없는 오류');
+                }
+
+                return data.report;
+            }
+
+            // Update HTML with AI-generated report
+            function updateReportWithAI(aiReport) {
+                console.log('📝 Updating report with AI analysis...');
+
+                // Simple markdown to HTML conversion
+                const parseMarkdown = (text) => {
+                    return text
+                        .replace(/\n/g, '<br>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+                };
+
+                // 1. Update Executive Summary
+                const execSummary = document.querySelector('.exec-summary');
+                if (execSummary) {
+                    const summaryMatch = aiReport.match(/EXECUTIVE_SUMMARY([\s\S]*?)(?=PORTFOLIO_STRATEGY|$)/);
+                    if (summaryMatch) {
+                        execSummary.innerHTML = `
+                    <div style="text-align: left; position: relative;">
+                        <div style="position: absolute; top: 10px; right: 10px; background: #27ae60; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; z-index: 10;">
+                            🤖 AI 분석
+                        </div>
+                        ${parseMarkdown(summaryMatch[1].trim())}
+                    </div>
+                `;
+                        execSummary.style.backgroundColor = '#e8f5e9';
+                        setTimeout(() => { execSummary.style.backgroundColor = ''; }, 2000);
+                        console.log('✅ Executive summary updated');
+                    }
+                }
+
+                // 2. Add Portfolio Strategy Section
+                const portfolioMatch = aiReport.match(/PORTFOLIO_STRATEGY([\s\S]*?)(?=ACTION_PLAN|$)/);
+                if (portfolioMatch) {
+                    // Remove existing AI section if any
+                    const existingAI = document.querySelector('.ai-portfolio-section');
+                    if (existingAI) existingAI.remove();
+
+                    const aiSection = document.createElement('div');
+                    aiSection.className = 'ai-portfolio-section';
+                    aiSection.style.cssText = 'background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+                    aiSection.innerHTML = `
+                <strong style="color: #e65100; font-size: 18px;">🤖 AI 맞춤형 포트폴리오 전략</strong>
+                <div style="margin-top: 10px; line-height: 1.8;">
+                    ${parseMarkdown(portfolioMatch[1].trim())}
+                </div>
+            `;
+
+                    const portfolioHeading = Array.from(document.querySelectorAll('h3')).find(
+                        h3 => h3.textContent.includes('포트폴리오')
+                    );
+                    if (portfolioHeading) {
+                        portfolioHeading.parentElement.insertBefore(aiSection, portfolioHeading.nextSibling);
+                        console.log('✅ Portfolio section added');
+                    }
+                }
+
+                // 3. Add Action Plan Section
+                const actionMatch = aiReport.match(/ACTION_PLAN([\s\S]*)/);
+                if (actionMatch) {
+                    // Remove existing AI section if any
+                    const existingAI = document.querySelector('.ai-action-section');
+                    if (existingAI) existingAI.remove();
+
+                    const aiSection = document.createElement('div');
+                    aiSection.className = 'ai-action-section';
+                    aiSection.style.cssText = 'background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+                    aiSection.innerHTML = `
+                <strong style="color: #1976d2; font-size: 18px;">🤖 AI 시나리오 분석</strong>
+                <div style="margin-top: 10px; line-height: 1.8;">
+                    ${parseMarkdown(actionMatch[1].trim())}
+                </div>
+            `;
+
+                    const scenarioHeading = Array.from(document.querySelectorAll('h3')).find(
+                        h3 => h3.textContent.includes('시나리오')
+                    );
+                    if (scenarioHeading) {
+                        scenarioHeading.parentElement.insertBefore(aiSection, scenarioHeading.nextSibling);
+                        console.log('✅ Action plan section added');
+                    }
+                }
+
+                console.log('🎉 Report update complete!');
+            }
+
+            // Initialize Gemini integration on page load
+            window.addEventListener('DOMContentLoaded', () => {
+                const addBtn = document.getElementById('add-note-btn');
+                const noteInput = document.getElementById('note-input');
+
+                if (!addBtn || !noteInput) {
+                    console.error('❌ Required elements not found');
+                    return;
+                }
+
+                // Remove existing event listeners by cloning the button
+                const newAddBtn = addBtn.cloneNode(true);
+                addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+
+                // Add new Gemini-powered event listener
+                newAddBtn.addEventListener('click', async () => {
+                    const text = noteInput.value.trim();
+                    if (!text) {
+                        alert("분석 내용을 먼저 입력해주세요.");
+                        return;
+                    }
+
+                    // Loading state
+                    newAddBtn.disabled = true;
+                    const originalHTML = newAddBtn.innerHTML;
+                    newAddBtn.innerHTML = '🔄 AI 분석 중...<br><span style="font-size: 12px;">30-60초 소요</span>';
+                    newAddBtn.style.opacity = '0.6';
+
+                    try {
+                        // Collect market data
+                        const marketData = collectMarketData();
+                        console.log('📊 Market data collected:', marketData);
+
+                        // Call Gemini API
+                        const aiReport = await callGeminiAPI(text, marketData);
+                        console.log('📄 AI Report received, length:', aiReport.length);
+
+                        // Update report with AI analysis
+                        updateReportWithAI(aiReport);
+
+                        // Save to localStorage
+                        const now = new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        const notes = JSON.parse(localStorage.getItem('vip_investor_notes') || '[]');
+                        notes.push({ text: text, time: now, aiReport: aiReport });
+                        localStorage.setItem('vip_investor_notes', JSON.stringify(notes));
+
+                        noteInput.value = '';
+
+                        // Success message
+                        alert("✅ AI 분석 완료!\n\n보고서가 귀하의 요청에 맞춰 재작성되었습니다.\n\n추가된 섹션:\n• 종합 결론 (🤖 AI 분석 배지)\n• 🤖 AI 맞춤형 포트폴리오 전략\n• 🤖 AI 시나리오 분석\n\n페이지를 스크롤하여 확인하세요!");
+
+                    } catch (error) {
+                        console.error('❌ Gemini API Error:', error);
+                        alert(`❌ AI 분석 중 오류가 발생했습니다.\n\n오류: ${error.message}\n\n• F12를 눌러 Console 확인\n• Cloudflare Workers 설정 확인\n• API 키가 올바른지 확인`);
+                    } finally {
+                        // Restore button
+                        newAddBtn.disabled = false;
+                        newAddBtn.innerHTML = originalHTML;
+                        newAddBtn.style.opacity = '1';
+                    }
+                });
+
+                console.log('✅ Gemini API integration loaded successfully!');
+                console.log('📡 Worker URL:', GEMINI_WORKER_URL);
+            });
+        </script>
+
+        <!-- 실시간 시황 요약 섹션 추가 스크립트 -->
+        <script>
+            // 실시간 시황 요약 생성 및 삽입
+            function initMarketSummary() {
+                // 종합 결론 섹션 찾기
+                const sections = document.querySelectorAll('section');
+                let targetSection = null;
+
+                sections.forEach(section => {
+                    const h3 = section.querySelector('h3');
+                    if (h3 && h3.textContent.includes('종합 결론')) {
+                        targetSection = section;
+                    }
+                });
+
+                if (!targetSection) {
+                    console.error('❌ 종합 결론 섹션을 찾을 수 없습니다.');
+                    return;
+                }
+
+                // 시황 요약 HTML 생성
+                const summaryHTML = `
+        <div id="market-summary-live" style="
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(30, 60, 114, 0.3);
+            font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
+                <h3 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.5px;">
+                    📊 실시간 종합 시황
+                </h3>
+                <div id="update-time" style="
+                    font-size: 13px;
+                    background: rgba(255,255,255,0.2);
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-weight: 500;
+                "></div>
+            </div>
+            <div id="market-summary-content" style="
+                background: rgba(255,255,255,0.1);
+                padding: 20px;
+                border-radius: 12px;
+                line-height: 1.9;
+                font-size: 16px;
+                backdrop-filter: blur(10px);
+            ">
+                <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7);">
+                    시장 데이터 로딩 중...
+                </div>
+            </div>
+        </div>
+    `;
+
+                // 종합 결론 h3 태그 바로 뒤에 삽입
+                const h3 = targetSection.querySelector('h3');
+                if (h3) {
+                    h3.insertAdjacentHTML('afterend', summaryHTML);
+                    console.log('✅ 시황 요약 섹션 삽입 완료');
+                }
+            }
+
+            // 시황 요약 업데이트 함수
+            function updateMarketSummary() {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long'
+                });
+                const timeStr = now.toLocaleTimeString('ko-KR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                // 업데이트 시간 표시
+                const updateTimeEl = document.getElementById('update-time');
+                if (updateTimeEl) {
+                    updateTimeEl.textContent = `${dateStr} ${timeStr}`;
+                }
+
+                // 시장 데이터 수집
+                const getPrice = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return null;
+                    const text = el.textContent;
+                    const match = text.match(/[\d,]+\.[\d]+/);
+                    return match ? parseFloat(match[0].replace(/,/g, '')) : null;
+                };
+
+                const getChange = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return null;
+                    const text = el.textContent;
+                    const match = text.match(/([+-]?[\d.]+)%/);
+                    return match ? parseFloat(match[1]) : null;
+                };
+
+                const kospiChange = getChange('kospi-live');
+                const kosdaqChange = getChange('kosdaq-live');
+                const kospiPrice = getPrice('kospi-live');
+                const kosdaqPrice = getPrice('kosdaq-live');
+
+                // 시황 분석 생성
+                let summary = '';
+
+                if (kospiChange === null || kosdaqChange === null) {
+                    summary = `<strong>현재 시점:</strong> ${dateStr} ${timeStr}<br><br>⏰ 시장이 휴장 중이거나 데이터를 불러오는 중입니다. 거래 시간(09:00-15:30)에 다시 확인해주세요.`;
+                } else {
+                    const avgChange = (kospiChange + kosdaqChange) / 2;
+                    let marketTrend = '';
+                    let trendEmoji = '';
+                    let analysis = '';
+
+                    if (avgChange > 1) {
+                        marketTrend = '강세';
+                        trendEmoji = '📈🔥';
+                        analysis = `KOSPI ${kospiChange > 0 ? '+' : ''}${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange > 0 ? '+' : ''}${kosdaqChange.toFixed(2)}%로 투자 심리가 개선되고 있습니다. 레버리지 ETF를 활용한 공격적 포지션 구축 타이밍이며, 목표가 도달 시 부분 익절을 권장합니다.`;
+                    } else if (avgChange > 0.3) {
+                        marketTrend = '상승';
+                        trendEmoji = '📈';
+                        analysis = `KOSPI ${kospiChange > 0 ? '+' : ''}${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange > 0 ? '+' : ''}${kosdaqChange.toFixed(2)}%로 완만한 상승 흐름입니다. 레버리지 50% 내외로 안정적 진입을 추천하며, 급등 시 일부 차익 실현을 고려하세요.`;
+                    } else if (avgChange > -0.3) {
+                        marketTrend = '혼조';
+                        trendEmoji = '📊';
+                        analysis = `KOSPI ${kospiChange > 0 ? '+' : ''}${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange > 0 ? '+' : ''}${kosdaqChange.toFixed(2)}%로 방향성이 불분명합니다. 현금 비중을 높게 유지하며 추세 확인 후 진입하고, 단기 변동성에 주의가 필요합니다.`;
+                    } else if (avgChange > -1) {
+                        marketTrend = '약세';
+                        trendEmoji = '📉';
+                        analysis = `KOSPI ${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange.toFixed(2)}%로 조정 국면입니다. 레버리지 비중을 30% 이하로 축소하고, 손절 기준을 엄격히 준수하며 방어적 포지션을 유지하세요.`;
+                    } else {
+                        marketTrend = '급락';
+                        trendEmoji = '⚠️📉';
+                        analysis = `KOSPI ${kospiChange.toFixed(2)}%, KOSDAQ ${kosdaqChange.toFixed(2)}%로 급격한 하락세입니다. 레버리지 포지션 즉시 청산을 고려하고, 현금 비중 80% 이상 확보하며 반등 시점까지 관망을 권장합니다.`;
+                    }
+
+                    summary = `
+            <div style="margin-bottom: 16px;">
+                <strong style="font-size: 18px;">${trendEmoji} 현재 시장: ${marketTrend}</strong>
+                <div style="margin-top: 8px; font-size: 14px; color: rgba(255,255,255,0.8);">
+                    ${dateStr} ${timeStr} 기준
+                </div>
+            </div>
+            <div style="line-height: 1.9;">
+                ${analysis}
+            </div>
+        `;
+                }
+
+                const summaryEl = document.getElementById('market-summary-content');
+                if (summaryEl) {
+                    summaryEl.innerHTML = summary;
+                }
+            }
+
+            // 페이지 로드 시 실행
+            window.addEventListener('DOMContentLoaded', () => {
+                // 시황 섹션 생성
+                initMarketSummary();
+
+                // 초기 업데이트 (2초 후)
+                setTimeout(updateMarketSummary, 2000);
+
+                // 30초마다 자동 업데이트
+                setInterval(updateMarketSummary, 30000);
+
+                console.log('✅ 실시간 시황 요약 시스템 활성화');
             });
         </script>
 
