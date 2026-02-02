@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP 투자자 일일 분석 보고서</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #ecf0f1;
+            /* Cool grey background for professional look */
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 50px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+
+        /* Header Section */
+        header {
+            border-bottom: 4px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 36px;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .report-date {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* Section Styling */
+        h2 {
+            color: #2980b9;
+            font-size: 26px;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            border-left: 6px solid #e74c3c;
+            padding-left: 15px;
+            background: linear-gradient(to right, #f9f9f9, #fff);
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        /* Executive Summary Box */
+        .exec-summary {
+            background-color: #2c3e50;
+            color: white;
+            padding: 25px;
+            border-radius: 5px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            border: 2px solid #34495e;
+        }
+
+        .exec-summary span {
+            display: block;
+            font-size: 24px;
+            color: #f1c40f;
+            /* Gold for emphasis */
+            margin-top: 10px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #bdc3c7;
+        }
+
+        th {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            font-weight: 800;
+        }
+
+        .up {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        /* Red for up */
+        .down {
+            color: #2980b9;
+            font-weight: bold;
+        }
+
+        /* Blue for down */
+        .neutral {
+            color: #7f8c8d;
+        }
+
+        /* Action Plan Box */
+        .action-plan {
+            background-color: #fff3e0;
+            /* Light orange */
+            border: 2px solid #e67e22;
+            padding: 30px;
+            border-radius: 5px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #d35400;
+        }
+
+        .action-plan ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .action-plan li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .action-plan li::before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+
+        /* Risk Warning Footer */
+        .footer-warning {
+            margin-top: 60px;
+            padding: 20px;
+            background-color: #abb7b7;
+            color: #2c3e50;
+            font-size: 16px;
+            text-align: center;
+            border-radius: 5px;
+            font-style: italic;
+        }
+
+        /* Metaphor Tip Box */
+        .metaphor-box {
+            background-color: #e8f6f3;
+            border-left: 5px solid #1abc9c;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .note-item {
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 4px solid #34495e;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            font-size: 14px;
+        }
+
+        .note-time {
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-bottom: 3px;
+            display: block;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>VIP 투자 전략 보고서</h1>
+            <div class="report-date" id="report-timestamp">
+                생성 일시:
+                <script>document.write(new Date().toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' }));</script>
+                | 데이터: 실시간 연동
+            </div>
+        </header>
+
+        <!-- Analyst Input Section -->
+        <div class="analyst-input-section"
+            style="margin-bottom: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);">
+            <h3
+                style="margin: 0 0 15px 0; color: white; font-size: 22px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 28px;">🎯</span>
+                <span>추가 의견 입력 (Report Override)</span>
+            </h3>
+            <div style="background: rgba(255,255,255,0.95); padding: 15px; border-radius: 8px;">
+                <div style="display: flex; gap: 12px; align-items: stretch;">
+                    <textarea id="note-input" rows="3"
+                        style="flex: 1; padding: 12px; border: 2px solid #667eea; border-radius: 6px; font-size: 15px; resize: vertical;"
+                        placeholder="💡 분석 의견을 입력하세요 (예: '현재 과열, 즉시 매도', '추가 상승 여력, 적극 매수')&#10;&#10;입력 후 '분석 반영' 클릭 시 보고서 전체가 귀하의 의견에 맞춰 재작성됩니다."></textarea>
+                    <button id="add-note-btn"
+                        style="width: 140px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(102,126,234,0.3); transition: all 0.3s;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 15px rgba(102,126,234,0.4)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 10px rgba(102,126,234,0.3)';">분석
+                        반영<br><span style="font-size: 12px; font-weight: normal;">Apply</span></button>
+                </div>
+                <div id="note-list" style="display: none;">
+                    <!-- Notes saved but hidden -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="exec-summary">
+            <div style="text-align: left;">
+                <strong style="font-size: 1.3em;">[종합 결론 - 2026.02.02 시장 분석]</strong><br><br>
+
+                <span style="font-size: 1.1em; line-height: 1.8;">
+                    <strong style="color: #f39c12;">⚠️ 현재 시장 진단:</strong><br>
+                    국내 증시는 <strong>과열권 진입 직전 단계</strong>에 있습니다. KOSPI는 단기 급등 이후 기술적 저항선에 도달하였으며, 레버리지 ETF의 거래량 급증은 개인
+                    투자자들의 과도한 낙관론을 시사합니다.
+                </span><br><br>
+
+                <strong style="color: #f1c40f;">📊 핵심 리스크 요인:</strong><br>
+                <span style="font-size: 1.05em; line-height: 1.7;">
+                    • <strong>미 연준 매파 인사 지명</strong>으로 금리 인하 기대 후퇴<br>
+                    • <strong>원/달러 1,450원선</strong> 고착화로 외국인 수급 부담<br>
+                    • <strong>기술적 과열 신호</strong> (RSI 70 근접, 볼린저밴드 상단 이탈)
+                </span><br><br>
+
+                <strong style="color: #f1c40f;">📍 즉각 실행 지침:</strong><br>
+                <div
+                    style="background: rgba(255,255,255,0.1); padding: 15px; margin-top: 10px; border-radius: 5px; border-left: 4px solid #f1c40f;">
+                    <span style="font-size: 1.1em;">
+                        1. <strong>현금 비중 30% 이상 확보</strong> (필수)<br>
+                        2. <strong>레버리지 포지션 절반 이상 청산</strong> 권고<br>
+                        3. <strong>손절라인 -7% 엄수</strong> (예외 없음)<br>
+                        4. <strong>신규 매수 자제</strong>, 기존 포지션 관리에 집중
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Real-Time Market Dashboard -->
+        <h2>1. 글로벌 및 국내 증시 현황 (실시간)</h2>
+        <!-- Ticker Tape -->
+        <div class="tradingview-widget-container" style="height: 70px; margin-bottom: 20px;">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript"
+                src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+                    {
+                        "symbols": [
+                            { "proName": "KRX:KOSPI", "title": "KOSPI" },
+                            { "proName": "KRX:KOSDAQ", "title": "KOSDAQ" },
+                            { "proName": "CME_MINI:NQ1!", "title": "Nasdaq 100 선물" },
+                            { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
+                            { "proName": "FX_IDC:USDKRW", "title": "원/달러" }
+                        ],
+                            "showSymbolLogo": true,
+                                "isTransparent": false,
+                                    "displayMode": "adaptive",
+                                        "colorTheme": "light",
+                                            "locale": "kr"
+                    }
+                </script>
+        </div>
+
+        <!-- Mini Charts -->
+        <div style="display: flex; gap: 10px; justify-content: space-between;">
+            <!-- KODEX 200 Leverage -->
+            <div style="flex: 1;">
+                <div class="tradingview-widget-container">
+                    <script type="text/javascript"
+                        src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                            {
+                                "symbol": "KRX:122630",
+                                    "width": "100%",
+                                        "height": 220,
+                                            "locale": "kr",
+                                                "dateRange": "12M",
+                                                    "colorTheme": "light",
+                                                        "isTransparent": false,
+                                                            "autosize": false,
+                                                                "largeChartUrl": ""
+                            }
+                        </script>
+                </div>
+                <p style="text-align: center; font-weight: bold; color: #2c3e50;">KODEX 200 레버리지</p>
+            </div>
+            <!-- KODEX KOSDAQ 150 Lev -->
+            <div style="flex: 1;">
+                <div class="tradingview-widget-container">
+                    <script type="text/javascript"
+                        src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                            {
+                                "symbol": "KRX:233740",
+                                    "width": "100%",
+                                        "height": 220,
+                                            "locale": "kr",
+                                                "dateRange": "12M",
+                                                    "colorTheme": "light",
+                                                        "isTransparent": false,
+                                                            "autosize": false,
+                                                                "largeChartUrl": ""
+                            }
+                        </script>
+                </div>
+                <p style="text-align: center; font-weight: bold; color: #2c3e50;">KODEX 코스닥150 레버리지</p>
+            </div>
+        </div>
+
+        <!-- 2. Market Dynamics -->
+        <h2>2. 시장 동력 및 뉴스 요약 (Fact Check)</h2>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <p style="font-size: 16px; line-height: 1.8; color: #2c3e50;">
+                <strong>📌 시장 분석 요약:</strong> 2월 초 현재 국내 증시는 강력한 상승 모멘텀과 동시에 조정 압력이 공존하는 복합적 국면에 진입하였습니다.
+                미국의 통화정책 불확실성, 원화 약세 지속, 그리고 실물 경기의 점진적 회복세가 교차하며 단기 변동성 확대가 예상됩니다.
+                특히 레버리지 상품 투자자들은 <strong>음의 복리 효과</strong>와 <strong>급격한 시장 반전 리스크</strong>를 반드시 고려해야 합니다.
+            </p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th width="20%">구분/일자</th>
+                    <th>핵심 내용 및 영향 분석 (출처)</th>
+                    <th width="15%">영향도</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>미 연준 이슈</strong><br><small>26.01.30</small></td>
+                    <td style="text-align: left;">
+                        <strong>'케빈 워시' 의장 지명:</strong> 트럼프 대통령이 차기 연준 의장으로 공식 지명 했습니다.<br>
+                        → 매파적(긴축) 성향 인물로, 금리 인하 기대감 축소 및 달러 강세 유발.<br>
+                        <span style="color:#7f8c8d; font-size: 0.8em;">(출처: CNBC, Truth Social)</span>
+                    </td>
+                    <td class="down">부정적</td>
+                </tr>
+                <tr>
+                    <td><strong>환율 동향</strong><br><small>실시간</small></td>
+                    <td style="text-align: left;">
+                        <strong>원/달러 1,450원선:</strong> 외국인 투자자에게 환차손 우려를 주는 심리적 저항선.<br>
+                        → 외국인 순매수 전환 확인 전까지 대형주 상승 제한.<br>
+                        <span style="color:#7f8c8d; font-size: 0.8em;">(출처: Investing.com)</span>
+                    </td>
+                    <td><span style="color: #e67e22; font-weight: bold;">주의</span></td>
+                </tr>
+                <tr>
+                    <td><strong>실물 경기</strong><br><small>26.02.02</small></td>
+                    <td style="text-align: left;">
+                        <strong>한국 제조 PMI 호조 (51.2):</strong> 5개월 만에 최고치 기록, 경기 반등 신호.<br>
+                        → 반도체 및 수출 관련주 하방 경직성 확보에 긍정적.<br>
+                        <span style="color:#7f8c8d; font-size: 0.8em;">(출처: S&P Global)</span>
+                    </td>
+                    <td class="up">긍정적</td>
+                </tr>
+                <tr>
+                    <td><strong>원자재 급락</strong><br><small>26.01.31</small></td>
+                    <td style="text-align: left;">
+                        <strong>금값 급락 (-11%):</strong> 단기 차익 실현 및 강달러 영향으로 온스당 $4,745 수준 하락.<br>
+                        → 위험 자산(주식) 선호 심리 재확인 가능성.<br>
+                        <span style="color:#7f8c8d; font-size: 0.8em;">(출처: LA Times, GoldInvest)</span>
+                    </td>
+                    <td class="neutral">중립</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 3. Technical Analysis -->
+        <h2>3. 기술적 지표 및 쉬운 해석</h2>
+        <div style="display: flex; gap: 20px; align-items: flex-start;">
+            <!-- Gauge Widget -->
+            <div style="width: 350px;">
+                <div class="tradingview-widget-container">
+                    <script type="text/javascript"
+                        src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
+                            {
+                                "interval": "1D",
+                                    "width": 350,
+                                        "isTransparent": false,
+                                            "height": 350,
+                                                "symbol": "KRX:KOSPI",
+                                                    "showIntervalTabs": false,
+                                                        "displayMode": "single",
+                                                            "locale": "kr",
+                                                                "colorTheme": "light"
+                            }
+                        </script>
+                </div>
+            </div>
+            <!-- Explanation Table -->
+            <div style="flex: 1;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>지표명</th>
+                            <th>현재 상태 (비유)</th>
+                            <th>해석</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>RSI</strong><br>(상대강도지수)</td>
+                            <td><span style="font-size: 24px;">🌡️</span><br><strong>"엔진 과열"</strong> (70↑)</td>
+                            <td>단기간에 너무 빨리 달렸습니다. 잠시 엔진을 식히는(조정) 구간이 필연적입니다.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>볼린저밴드</strong></td>
+                            <td><span style="font-size: 24px;">📏</span><br><strong>"고무줄 팽팽"</strong> (상단)</td>
+                            <td>고무줄을 최대로 당기면 튕겨 나가거나 끊어집니다. 추가 상승보다 되돌림 확률이 높습니다.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>이동평균선</strong></td>
+                            <td><span style="font-size: 24px;">🎢</span><br><strong>"오르막길"</strong> (정배열)</td>
+                            <td>아직 추세 자체는 무너지지 않았습니다. 급락 시 20일선(생명선) 지지 여부가 관건입니다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div
+                    style="margin-top: 20px; background-color: #fff9e6; padding: 15px; border-radius: 5px; border: 1px solid #f39c12;">
+                    <strong style="color: #d35400; font-size: 16px;">🔍 지표 활용 가이드:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
+                        <li><strong>RSI 70 돌파 시:</strong> 추가 매수를 <u>즉시 중단</u>하고 기존 포지션의 30% 이상 익절 실시</li>
+                        <li><strong>볼린저밴드 상단 이탈:</strong> 통계적으로 3~5일 내 되돌림 확률 70% 이상, 단기 차익실현 타이밍</li>
+                        <li><strong>이동평균선 정배열 유지:</strong> 추세 자체는 건재하므로 과도한 공포 매도는 지양, 다만 20일선 이탈 시 <u>절반 이상 매도</u> 필수
+                        </li>
+                        <li><strong>종합 판단:</strong> 현재는 상승 추세 말기 ~ 조정 초기 사이의 전환점. <strong>욕심보다는 방어</strong>가 우선</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Portfolio & Action Plan -->
+        <h2>4. 포트폴리오 관리 및 액션 플랜</h2>
+
+        <div class="metaphor-box">
+            <strong>💡 투자 조언 (비유로 이해하기):</strong><br>
+            "비가 올 것 같으면 우산을 미리 준비하십시오. 지금은 현금이라는 우산을 챙길 때입니다."<br>
+            <span style="font-size: 14px; color: #7f8c8d; margin-top: 5px; display: block;">
+                → 시장이 무너진 후에는 '현금'을 확보하고 싶어도 가격이 급락하여 손실이 확정됩니다.
+                <strong>미리 준비</strong>하는 사람만이 폭락장에서도 살아남아 재진입 기회를 잡습니다.
+            </span>
+        </div>
+
+        <table style="font-size: 20px; font-weight: bold;">
+            <tr>
+                <td style="background-color: #fce4ec; width: 30%;">수정 포트폴리오 비중</td>
+                <td style="text-align: left; padding-left: 30px;">
+                    🔴 주식(ETF): <strong>70%</strong><br>
+                    💰 현금: <strong>30%</strong> (필수 확보)
+                    <div style="font-size: 14px; font-weight: normal; color: #7f8c8d; margin-top: 8px;">
+                        <strong>※ 비중 조정 근거:</strong> 과열 시그널 감지 → 방어적 포지션 전환.
+                        현금 30%는 <u>급락 시 재매수 여력</u> 확보 및 <u>심리적 안정성</u> 제공.
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div
+            style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #27ae60;">
+            <strong style="color: #27ae60; font-size: 17px;">📈 레버리지 ETF 운용 전략 (상세)</strong>
+            <p style="font-size: 15px; line-height: 1.8; margin-top: 10px; color: #2c3e50;">
+                • <strong>KODEX 200 레버리지:</strong> 대형주 중심, 변동성 상대적 낮음 → 안정적 수익 추구 시 적합<br>
+                • <strong>KODEX KOSDAQ150 레버리지:</strong> 기술주 중심, 변동성 높음 → 공격적 수익 추구 시 적합<br>
+                • <strong>주의사항:</strong> 두 상품 모두 <u>일일 수익률 2배 추종</u> 구조로, <strong>3일 이상 보유 시 복리 왜곡</strong> 발생<br>
+                • <strong>권장 보유기간:</strong> 최대 5영업일 이내, 7% 수익 또는 -7% 손실 도달 시 <u>무조건 청산</u><br>
+                • <strong>현재 권고:</strong> 기존 보유 중이라면 50% 익절 후 나머지는 손절라인 설정하여 관리
+            </p>
+        </div>
+
+        <div class="action-plan">
+            [시나리오별 대응 매뉴얼]
+            <ul>
+                <li><strong>🔻 개별 종목 -7% 하락 시:</strong><br>
+                    &nbsp;&nbsp;&nbsp;→ 이유 불문 <strong>"묻지마 절반 매도"</strong> 하십시오. 손실을 끊어내는 것이 고수의 첫 걸음입니다.</li>
+                <li><strong>🔻 계좌 전체 -10% 손실 시:</strong><br>
+                    &nbsp;&nbsp;&nbsp;→ 시장이 틀린 것이 아니라 내가 틀린 것입니다. <strong>전량 현금화</strong> 후 여행을 다녀오십시오.</li>
+                <li><strong>🔺 내일 2% 추가 하락 시:</strong><br>
+                    &nbsp;&nbsp;&nbsp;→ '저가 매수' 기회가 아닙니다. '떨어지는 칼날'입니다. 매수 버튼에서 손을 떼십시오.</li>
+            </ul>
+        </div>
+
+        <div class="footer-warning">
+            ⚠️ <strong>레버리지의 함정:</strong> 레버리지 상품의 '음의 복리 효과'는 <strong>"가랑비에 옷 젖는 것"</strong>과 같습니다.
+            횡보장에서도 내 돈은 매일 조금씩 녹아 없어집니다. 장기 투자는 절대 금물입니다.
+        </div>
+
+    </div>
+
+    <script>
+        // Enhanced Analyst Input Logic to Comprehensively Rewrite Report
+        const noteList = document.getElementById('note-list');
+        const noteInput = document.getElementById('note-input');
+        const addBtn = document.getElementById('add-note-btn');
+        const execSummaryBox = document.querySelector('.exec-summary');
+        const actionPlanBox = document.querySelector('.action-plan');
+
+        // Load notes from LocalStorage
+        function loadNotes() {
+            const notes = JSON.parse(localStorage.getItem('vip_investor_notes') || '[]');
+            noteList.innerHTML = '';
+            notes.forEach(note => {
+                addNoteElement(note.text, note.time);
+            });
+
+            // Re-apply the latest note to the report view if it exists
+            if (notes.length > 0) {
+                updateReportView(notes[notes.length - 1].text);
+            }
+        }
+
+        // Add Note to DOM
+        function addNoteElement(text, time) {
+            const div = document.createElement('div');
+            div.className = 'note-item';
+            div.innerHTML = `<span class="note-time">${time}</span>${text.replace(/\n/g, '<br>')}`;
+            noteList.prepend(div);
+        }
+
+        // Comprehensive Report Rewrite based on Input
+        function updateReportView(text) {
+            const lowerText = text.toLowerCase();
+            let sentiment = "neutral";
+            let confidence = "보통";
+
+            // Enhanced keyword analysis
+            const bullishKeywords = ["매수", "긍정", "상승", "기회", "돌파", "강세", "반등", "호재", "추천"];
+            const bearishKeywords = ["매도", "현금", "위험", "폭락", "관망", "조정", "하락", "악재", "경계", "청산"];
+
+            const bullishCount = bullishKeywords.filter(k => text.includes(k)).length;
+            const bearishCount = bearishKeywords.filter(k => text.includes(k)).length;
+
+            if (bullishCount > bearishCount && bullishCount > 0) {
+                sentiment = "bullish";
+                confidence = bullishCount >= 2 ? "강력" : "보통";
+            } else if (bearishCount > bullishCount && bearishCount > 0) {
+                sentiment = "bearish";
+                confidence = bearishCount >= 2 ? "강력" : "보통";
+            }
+
+            // === 1. REWRITE EXECUTIVE SUMMARY ===
+            if (sentiment === "bearish") {
+                execSummaryBox.innerHTML = `
+                    <div style="text-align: left;">
+                        <strong style="font-size: 1.2em;">[긴급 투자 전략 수정 - ${confidence} 위험 신호]</strong><br><br>
+                        <span style="color: #fff; font-size: 1.1em;">⛔ 분석가 긴급 의견:</span><br>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 5px; font-weight: normal;">
+                            "${text}"
+                        </div>
+                        <strong style="color: #ffeb3b;">📍 즉각 실행 지침:</strong><br>
+                        • 모든 레버리지 포지션 <strong>50% 이상 즉시 청산</strong>하십시오<br>
+                        • 현금 비중을 <strong>최소 50%</strong>로 증액하십시오<br>
+                        • 추가 하락 시 <strong>전량 현금화</strong> 준비를 하십시오
+                    </div>
+                `;
+                execSummaryBox.style.backgroundColor = "#c0392b";
+                execSummaryBox.style.border = "3px solid #e74c3c";
+
+            } else if (sentiment === "bullish") {
+                execSummaryBox.innerHTML = `
+                    <div style="text-align: left;">
+                        <strong style="font-size: 1.2em;">[긴급 투자 전략 수정 - ${confidence} 매수 기회]</strong><br><br>
+                        <span style="color: #fff; font-size: 1.1em;">🚀 분석가 긴급 의견:</span><br>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 5px; font-weight: normal;">
+                            "${text}"
+                        </div>
+                        <strong style="color: #f1c40f;">📍 즉각 실행 지침:</strong><br>
+                        • 현금 비중을 <strong>30% 수준으로 조정</strong>하고 주식 비중 확대<br>
+                        • KODEX 레버리지 상품 <strong>분할 매수</strong> 검토<br>
+                        • 단, 손절라인 <strong>-7% 엄수</strong> (상승장에서도 리스크 관리 필수)
+                    </div>
+                `;
+                execSummaryBox.style.backgroundColor = "#27ae60";
+                execSummaryBox.style.border = "3px solid #2ecc71";
+
+            } else {
+                // Neutral - keep default detailed summary without adding analyst comment
+                execSummaryBox.innerHTML = `
+                    <div style="text-align: left;">
+                        <strong style="font-size: 1.3em;">[종합 결론 - 2026.02.02 시장 분석]</strong><br><br>
+                        
+                        <span style="font-size: 1.1em; line-height: 1.8;">
+                            <strong style="color: #f39c12;">⚠️ 현재 시장 진단:</strong><br>
+                            국내 증시는 <strong>과열권 진입 직전 단계</strong>에 있습니다. KOSPI는 단기 급등 이후 기술적 저항선에 도달하였으며, 레버리지 ETF의 거래량 급증은 개인 투자자들의 과도한 낙관론을 시사합니다.
+                        </span><br><br>
+                        
+                        <strong style="color: #f1c40f;">📊 핵심 리스크 요인:</strong><br>
+                        <span style="font-size: 1.05em; line-height: 1.7;">
+                            • <strong>미 연준 매파 인사 지명</strong>으로 금리 인하 기대 후퇴<br>
+                            • <strong>원/달러 1,450원선</strong> 고착화로 외국인 수급 부담<br>
+                            • <strong>기술적 과열 신호</strong> (RSI 70 근접, 볼린저밴드 상단 이탈)
+                        </span><br><br>
+                        
+                        <strong style="color: #f1c40f;">� 즉각 실행 지침:</strong><br>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; margin-top: 10px; border-radius: 5px; border-left: 4px solid #f1c40f;">
+                            <span style="font-size: 1.1em;">
+                                1. <strong>현금 비중 30% 이상 확보</strong> (필수)<br>
+                                2. <strong>레버리지 포지션 절반 이상 청산</strong> 권고<br>
+                                3. <strong>손절라인 -7% 엄수</strong> (예외 없음)<br>
+                                4. <strong>신규 매수 자제</strong>, 기존 포지션 관리에 집중
+                            </span>
+                        </div>
+                    </div>
+                `;
+                execSummaryBox.style.backgroundColor = "#2c3e50";
+                execSummaryBox.style.border = "2px solid #34495e";
+            }
+
+            // === 2. REWRITE PORTFOLIO STRATEGY TABLE ===
+            const portfolioTable = document.querySelector('table[style*="font-size: 20px"]');
+            if (portfolioTable) {
+                let stockRatio, cashRatio, rationale;
+
+                if (sentiment === "bearish") {
+                    stockRatio = confidence === "강력" ? "30%" : "40%";
+                    cashRatio = confidence === "강력" ? "70%" : "60%";
+                    rationale = "시장 위험 증가로 인한 방어적 포지션 전환";
+                } else if (sentiment === "bullish") {
+                    stockRatio = confidence === "강력" ? "80%" : "70%";
+                    cashRatio = confidence === "강력" ? "20%" : "30%";
+                    rationale = "상승 모멘텀 확인으로 공격적 포지션 전환";
+                } else {
+                    stockRatio = "70%";
+                    cashRatio = "30%";
+                    rationale = "중립 시장 대응 균형 포지션 유지";
+                }
+
+                portfolioTable.innerHTML = `
+                    <tr>
+                        <td style="background-color: #fce4ec; width: 30%; font-weight: bold;">수정 포트폴리오 비중</td>
+                        <td style="text-align: left; padding-left: 30px;">
+                            🔴 주식(ETF): <strong style="font-size: 1.3em; color: ${sentiment === 'bullish' ? '#27ae60' : sentiment === 'bearish' ? '#c0392b' : '#2c3e50'};">${stockRatio}</strong><br>
+                            💰 현금: <strong style="font-size: 1.3em; color: ${sentiment === 'bearish' ? '#27ae60' : sentiment === 'bullish' ? '#e67e22' : '#2c3e50'};">${cashRatio}</strong>
+                            <div style="margin-top: 8px; font-size: 0.8em; color: #7f8c8d;">
+                                (조정 근거: ${rationale})
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            // === 3. REWRITE ACTION PLAN ===
+            const actionUl = actionPlanBox.querySelector('ul');
+            if (actionUl) {
+                if (sentiment === "bearish") {
+                    actionUl.innerHTML = `
+                        <li><strong>🚨 즉시 실행 (긴급):</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 레버리지 ETF <strong>50% 이상 매도</strong> (익절/손절 무관)<br>
+                            &nbsp;&nbsp;&nbsp;→ 현금 비중 <strong>${cashRatio}</strong>까지 즉시 증액<br>
+                            &nbsp;&nbsp;&nbsp;→ 추가 하락 시 나머지 포지션도 <strong>무조건 청산</strong></li>
+                        <li><strong>🔻 손절 기준 강화:</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 개별 종목 <strong>-5%</strong> 도달 시 즉시 전량 매도 (기존 -7% 대비 강화)<br>
+                            &nbsp;&nbsp;&nbsp;→ 시장이 귀하의 예상과 다르게 움직이면 <strong>잘못을 인정</strong>하고 빠르게 철수하십시오</li>
+                        <li><strong>⏸️ 신규 매수 금지:</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 모든 '저가 매수' 시그널을 <strong>무시</strong>하십시오<br>
+                            &nbsp;&nbsp;&nbsp;→ 떨어지는 칼날을 잡으려 하지 마십시오</li>
+                    `;
+                    actionPlanBox.style.backgroundColor = "#ffcdd2";
+                    actionPlanBox.style.borderColor = "#c62828";
+                    actionPlanBox.style.borderWidth = "3px";
+
+                } else if (sentiment === "bullish") {
+                    actionUl.innerHTML = `
+                        <li><strong>🚀 적극 매수 전략:</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 현금 비중을 <strong>${cashRatio}</strong>까지 축소, 주식 비중 <strong>${stockRatio}</strong> 확대<br>
+                            &nbsp;&nbsp;&nbsp;→ KODEX 200/KOSDAQ150 레버리지 <strong>2~3회 분할 매수</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 단, 한 번에 몰빵하지 말고 <strong>시간 분산 필수</strong></li>
+                        <li><strong>⚠️ 상승장 리스크 관리:</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 손절라인 <strong>-7%</strong>는 여전히 엄수 (과욕 금물)<br>
+                            &nbsp;&nbsp;&nbsp;→ 급등 시 <strong>일부 익절</strong>로 원금 회수 전략 병행</li>
+                        <li><strong>📊 기술적 지표 모니터링:</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ RSI 70 이상 진입 시 <strong>추가 매수 중단</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 20일 이평선 이탈 시 <strong>절반 이상 즉시 매도</strong></li>
+                    `;
+                    actionPlanBox.style.backgroundColor = "#c8e6c9";
+                    actionPlanBox.style.borderColor = "#2e7d32";
+                    actionPlanBox.style.borderWidth = "3px";
+
+                } else {
+                    actionUl.innerHTML = `
+                        <li><strong>🔻 개별 종목 -7% 하락 시:</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 이유 불문 <strong>"묻지마 절반 매도"</strong> 하십시오. 손실을 끊어내는 것이 고수의 첫 걸음입니다.</li>
+                        <li><strong>🔻 계좌 전체 -10% 손실 시:</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ 시장이 틀린 것이 아니라 내가 틀린 것입니다. <strong>전량 현금화</strong> 후 여행을 다녀오십시오.</li>
+                        <li><strong>🔺 내일 2% 추가 하락 시:</strong><br>
+                            &nbsp;&nbsp;&nbsp;→ '저가 매수' 기회가 아닙니다. '떨어지는 칼날'입니다. 매수 버튼에서 손을 떼십시오.</li>
+                    `;
+                    actionPlanBox.style.backgroundColor = "#fff3e0";
+                    actionPlanBox.style.borderColor = "#e67e22";
+                    actionPlanBox.style.borderWidth = "2px";
+                }
+            }
+
+            // Visual feedback
+            document.body.style.transition = "background-color 0.5s";
+            const originalBg = document.body.style.backgroundColor;
+            document.body.style.backgroundColor = sentiment === "bearish" ? "#ffe6e6" : sentiment === "bullish" ? "#e6f7e6" : "#f0f0f0";
+            setTimeout(() => {
+                document.body.style.backgroundColor = "#ecf0f1";
+            }, 2000);
+        }
+
+        // Save Note & Update Report
+        addBtn.addEventListener('click', () => {
+            const text = noteInput.value.trim();
+            if (!text) {
+                alert("분석 내용을 먼저 입력해주세요.");
+                return;
+            }
+
+            const now = new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const notes = JSON.parse(localStorage.getItem('vip_investor_notes') || '[]');
+
+            notes.push({ text: text, time: now });
+            localStorage.setItem('vip_investor_notes', JSON.stringify(notes));
+
+            addNoteElement(text, now);
+            updateReportView(text); // Trigger comprehensive rewrite
+
+            noteInput.value = '';
+
+            // Enhanced feedback
+            alert("✅ 보고서가 귀하의 분석 의견에 따라 전면 재작성되었습니다.\n\n변경된 내용:\n• 종합 결론\n• 포트폴리오 비중\n• 시나리오별 행동 지침");
+        });
+
+        // Initialize
+        loadNotes();
+    </script>
+
+</body>
+
+</html>
